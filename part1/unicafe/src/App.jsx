@@ -1,7 +1,12 @@
 import { useState } from 'react'
 
 const Button = (props) => <button onClick={props.updateCount}>{props.text}</button>
-const Statistic = (props) => <p>{props.text} {props.count}</p>
+const Statistic = (props) => (
+  <tr>
+    <td>{props.text}</td>
+    <td>{props.count}</td>
+  </tr>
+)
 
 const GiveFeedbakc = ({updateGoods, updateNeutrals, updateBads}) => (
   <>
@@ -17,12 +22,16 @@ const Statistics = ({good, neutral, bad}) => {
   const positive = good/all*100
   return (
     <>
-      <Statistic text={'good'} count={good}/>
-      <Statistic text={'neutral'} count={neutral}/>
-      <Statistic text={'bad'} count={bad}/>
-      <Statistic text={'all'} count={all}/>
-      <Statistic text={'average'} count={average}/>
-      <Statistic text={'positive'} count={positive}/>
+      <table>
+        <tbody>
+          <Statistic text={'good'} count={good}/>
+          <Statistic text={'neutral'} count={neutral}/>
+          <Statistic text={'bad'} count={bad}/>
+          <Statistic text={'all'} count={all}/>
+          <Statistic text={'average'} count={average}/>
+          <Statistic text={'positive'} count={positive}/>            
+        </tbody>
+      </table>
     </>
   )
 }
