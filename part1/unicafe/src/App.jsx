@@ -16,13 +16,12 @@ const Statistics = ({good, neutral, bad}) => {
   const positive = good/all*100
   return (
     <>
-      <h1>statistics</h1>
       <p>good {good}</p>
       <p>neutral {neutral}</p>
       <p>bad {bad}</p>
       <p>all {all}</p>
-      <p>average {average ? average : 0}</p>
-      <p>positive {positive ? positive : 0}%</p>
+      <p>average {average}</p>
+      <p>positive {positive}</p>
     </>
   )
 }
@@ -39,7 +38,8 @@ const App = () => {
   return (
     <div>
       <GiveFeedbakc updateGoods={updateGoods} updateNeutrals={updateNeutrals} updateBads={updateBads}/>
-      <Statistics good={good} neutral={neutral} bad={bad}/>
+      <h1>statistics</h1>
+      {good+neutral+bad > 0 ? <Statistics good={good} neutral={neutral} bad={bad}/> : <p>No feedback given</p>}
     </div>
   )
 }
