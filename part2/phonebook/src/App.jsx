@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 
 // Components
 const SearchFilter = ({searchedName, updateSearchedName}) => <p>filter shown with <input value={searchedName} onChange={updateSearchedName}/></p>
@@ -14,14 +15,24 @@ const PersonForm = ({newName, newNumber, updateNewName, updateNewNumber, addNewP
 }
 
 const App = () => {
-  const initalData = [{name: 'Arto Hellas', number: '040-1234567'}] // Initial data
   
+  const baseUrl = 'http://localhost:3001/persons'
+
   // States
-  const [persons, setPersons] = useState(initalData) 
+  const [persons, setPersons] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchedName, setSearchedName] = useState('')
   const [searchedPersons, setSearchedPersons] = useState(persons)
+  
+  // Hook
+  useEffect(() => {
+    axios.get(baseUrl)
+    .then(response => {
+      setPersons(response.data)
+      setSearchedPersons(response.data)
+    })
+  }, [])
 
   // Functions
   const updateNewName = (event) => setNewName(event.target.value)
@@ -38,9 +49,12 @@ const App = () => {
     if (alreadyExists) {
       alert(`${newName} is already added to phonebook`)
     } else {
-      const newPersons = [...persons, {name: newName, number: newNumber}]
+      const id = Math.max(...persons.map(person => person.id));
+      const newPerson = {name: newName, number: newNumber, id: id}
+      const newPersons = [...persons, newPerson]
       setPersons(newPersons)
       setSearchedPersons(newPersons)
+      axios.post(baseUrl, newPerson)
     }
     setNewName('')
     setNewNumber('')
