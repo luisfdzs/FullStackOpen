@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import personsService from './services/persons.js'
 
 // Components
 const SearchFilter = ({searchedName, updateSearchedName}) => <p>filter shown with <input value={searchedName} onChange={updateSearchedName}/></p>
@@ -15,8 +15,6 @@ const PersonForm = ({newName, newNumber, updateNewName, updateNewNumber, addNewP
 }
 
 const App = () => {
-  
-  const baseUrl = 'http://localhost:3001/persons'
 
   // States
   const [persons, setPersons] = useState([]) 
@@ -27,7 +25,7 @@ const App = () => {
   
   // Hook
   useEffect(() => {
-    axios.get(baseUrl)
+    personsService.getAll()
     .then(response => {
       setPersons(response.data)
       setSearchedPersons(response.data)
@@ -54,7 +52,7 @@ const App = () => {
       const newPersons = [...persons, newPerson]
       setPersons(newPersons)
       setSearchedPersons(newPersons)
-      axios.post(baseUrl, newPerson)
+      personsService.create(newPerson)
     }
     setNewName('')
     setNewNumber('')
