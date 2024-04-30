@@ -9,7 +9,12 @@ const App = () => {
   const updateNewName = (event) => setNewName(event.target.value)
   const addNewPerson = (event) => {
     event.preventDefault()
-    setPersons([...persons, {name: newName}])
+    const alreadyExists = persons.some(person => person.name.toLowerCase() === newName.toLowerCase())
+    if (alreadyExists) {
+      alert(`${newName} is already added to phonebook`)
+    } else {
+      setPersons([...persons, {name: newName}])
+    }
     setNewName('')
   }
   return (
