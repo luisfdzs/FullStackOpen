@@ -1,27 +1,28 @@
 import { useState } from 'react'
 
-const GiveFeedbakc = ({updateGoods, updateNeutrals, updateBads}) => {
-  return (
-    <>
-      <h1>give feedback</h1>
-      <button onClick={updateGoods}>good</button>
-      <button onClick={updateNeutrals}>neutral</button>
-      <button onClick={updateBads}>bad</button>
-    </>
-  )
-}
+const Button = (props) => <button onClick={props.updateCount}>{props.text}</button>
+const Statistic = (props) => <p>{props.text} {props.count}</p>
+
+const GiveFeedbakc = ({updateGoods, updateNeutrals, updateBads}) => (
+  <>
+    <h1>give feedback</h1>
+    <Button updateCount={updateGoods} text={'good'}/>
+    <Button updateCount={updateNeutrals} text={'neutral'}/>
+    <Button updateCount={updateBads} text={'bad'}/>
+  </>
+)
 const Statistics = ({good, neutral, bad}) => {
   const all = good+neutral+bad
   const average = (good-bad)/all
   const positive = good/all*100
   return (
     <>
-      <p>good {good}</p>
-      <p>neutral {neutral}</p>
-      <p>bad {bad}</p>
-      <p>all {all}</p>
-      <p>average {average}</p>
-      <p>positive {positive}</p>
+      <Statistic text={'good'} count={good}/>
+      <Statistic text={'neutral'} count={neutral}/>
+      <Statistic text={'bad'} count={bad}/>
+      <Statistic text={'all'} count={all}/>
+      <Statistic text={'average'} count={average}/>
+      <Statistic text={'positive'} count={positive}/>
     </>
   )
 }
