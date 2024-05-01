@@ -1,11 +1,19 @@
-
 // Imports
 import { useEffect, useState } from 'react'
 import personsService from './services/persons.js'
 
 // Components
-const Notification = ({message, style}) => {  
-  return <p style={style}>{message}</p>
+const Notification = ({message, isError}) => {
+  const style = {
+    color: isError ? 'red' : 'green',
+    background: 'lightgrey',
+    fontSize: 20,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10
+  }
+  return message ? <p style={style}>{message}</p> : null
 }
 const SearchFilter = ({searchedName, updateSearchedName}) => {
   return <p>filter shown with <input value={searchedName} onChange={updateSearchedName}/></p>
@@ -22,7 +30,7 @@ const PersonForm = ({newName, newNumber, updateNewName, updateNewNumber, addNewP
 const Persons  = ({searchedPersons, deletePerson}) => {
   return (
     <>
-      {searchedPersons.map(person => <p key={person.id}>{person.name} {person.number}<button onClick={() => deletePerson(person)}>delete</button></p>)}
+      {searchedPersons.length ? searchedPersons.map(person => <p key={person.id}>{person.name} {person.number}<button onClick={() => deletePerson(person)}>delete</button></p>) : <p>No data avaiable</p>}
     </>
   )
 }
@@ -36,26 +44,34 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [searchedName, setSearchedName] = useState('')
   const [searchedPersons, setSearchedPersons] = useState([])
-  const [notification, setNotification] = useState('')
-  const [notificationError, setNotificationError] = useState('')
-
+  const [isLoading, setIsLoading] = useState(true)
+  const [notification, setNotification] = useState(null)
+  const [isError, setIsError] = useState(false)
+  
   // Hook
   useEffect(() => {
     personsService
     .getAll()
     .then(response => {
-      setPersons(response.data)
-      setSearchedPersons(response.data)
+      const persons = response.data.map(person => ({...person, id: person.id.toString()}))
+      setPersons(persons)
+      setSearchedPersons(persons)
+      setIsLoading(false)
     })
     .catch(() => {
-      setNotificationError('Error getting the information from the phone book')        
-        setTimeout(() => {
-          setNotificationError(null)
-        }, 2000);
+      sendNotification('Error getting the information from the phone book', true)
+      setIsLoading(false)
     })
   },[])
-
+  
   // Functions
+  const sendNotification = (message, isError = false) => {
+    setNotification(message)
+    setIsError(isError)
+    setTimeout(() => {
+      setNotification(null)
+    }, 2000);
+  }
   const clean = () => {
     setSearchedName('')
     setNewName('')
@@ -86,17 +102,9 @@ const App = () => {
       .then(() => {
         setPersons(newPersons)
         setSearchedPersons(newPersons)
-        setNotification(`${newPerson.name} number is added to phonebook`)        
-        setTimeout(() => {
-          setNotification(null)
-        }, 2000);
+        sendNotification(`${newPerson.name} number is added to phonebook`)
       })
-      .catch(() => {
-        setNotificationError(`${newPerson.name} could not be added`)
-        setTimeout(() => {
-          setNotificationError(null)
-        }, 2000);
-      })
+      .catch(() => sendNotification(`${newPerson.name} could not be added`, true))
     }
     clean()
   }
@@ -104,19 +112,12 @@ const App = () => {
     personsService
     .update(newPerson)
     .then(() => {
-      const newPersons = [...persons.filter(person => person.name !== newPerson.name), newPerson]
+      const newPersons = [...persons.filter(person => person.name !== newPerson.name), newPerson].sort((a, b) => a.id - b.id)
       setPersons(newPersons)
-      setNotification(`${newPerson.name} number is updated to ${newPerson.number}`)        
-      setTimeout(() => {
-        setNotification(null)
-      }, 2000);
+      setSearchedPersons(newPersons)
+      sendNotification(`${newPerson.name} number is updated to ${newPerson.number}`)
     })    
-    .catch(() => {
-      setNotificationError(`Information of ${newPerson.name} has already removed from server`)
-      setTimeout(() => {
-        setNotificationError(null)
-      }, 2000);
-    })
+    .catch(() => sendNotification(`Information of ${newPerson.name} has already removed from server`, true))
     clean()
   }
   const deletePerson = (_person) => {
@@ -128,39 +129,24 @@ const App = () => {
       .then(() => {
         setPersons(updatedPersons)
         setSearchedPersons(updatedPersons)
+        sendNotification(`${_person.name} deleted from phonebook`)
       })
-      .catch(() => {
-        setNotificationError(`${_person.name} could not be deleted`)
-        setTimeout(() => {
-          setNotificationError(null)
-        }, 2000);
-      })
+      .catch(() => sendNotification(`${_person.name} could not be deleted`, true))
     }
     clean()
   }
 
   // Render
-  const notificationStyle = {
-    color: 'green',
-    background: 'lightgrey',
-    fontSize: 20,
-    borderStyle: 'solid',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10
-  }
-  const errorNotificationStyle = {...notificationStyle, color: 'red'}
   return (
     <>
       <div>
         <h2>Phonebook</h2>
-        {notificationError ? <Notification style={errorNotificationStyle} message={notificationError}/> : null }
-        {notification ? <Notification style={notificationStyle} message={notification}/> : null}
+        {notification ? <Notification message={notification} isError={isError}/> : null}
         <SearchFilter searchedName={searchedName} updateSearchedName={updateSearchedName}/>
         <h3>Add a new</h3>
         <PersonForm newName={newName} newNumber={newNumber} updateNewName={updateNewName} updateNewNumber={updateNewNumber} addNewPerson={addNewPerson}/>
         <h3>Numbers</h3>
-        <Persons searchedPersons={searchedPersons} deletePerson={deletePerson}/>
+        {isLoading ? <p>Loading ...</p> : <Persons searchedPersons={searchedPersons} deletePerson={deletePerson}/>}
       </div>
     </>
   ) 
