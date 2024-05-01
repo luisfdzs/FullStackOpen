@@ -1,9 +1,12 @@
+
+// Imports
 import { useEffect, useState } from 'react'
 import personsService from './services/persons.js'
 
 // Components
-const SearchFilter = ({searchedName, updateSearchedName}) => <p>filter shown with <input value={searchedName} onChange={updateSearchedName}/></p>
-const Persons  = ({searchedPersons}) => (<>{searchedPersons.map(person => <p key={person.name}>{person.name} {person.number}</p>)}</>)
+const SearchFilter = ({searchedName, updateSearchedName}) => {
+  return <p>filter shown with <input value={searchedName} onChange={updateSearchedName}/></p>
+}
 const PersonForm = ({newName, newNumber, updateNewName, updateNewNumber, addNewPerson}) => {
   return (
     <form>
@@ -13,7 +16,15 @@ const PersonForm = ({newName, newNumber, updateNewName, updateNewNumber, addNewP
     </form>
   )
 }
+const Persons  = ({searchedPersons, deletePerson}) => {
+  return (
+    <>
+      {searchedPersons.map(person => <p key={person.name}>{person.name} {person.number}<button onClick={() => deletePerson(person)}>delete</button></p>)}
+    </>
+  )
+}
 
+// Main Component App
 const App = () => {
 
   // States
@@ -21,18 +32,26 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [searchedName, setSearchedName] = useState('')
-  const [searchedPersons, setSearchedPersons] = useState(persons)
-  
+  const [searchedPersons, setSearchedPersons] = useState([])
+  const [networkError, setNetworkError] = useState(false)
+
   // Hook
   useEffect(() => {
-    personsService.getAll()
+    personsService
+    .getAll()
     .then(response => {
       setPersons(response.data)
       setSearchedPersons(response.data)
     })
-  }, [])
+    .catch(() => setNetworkError(true))
+  },[])
 
   // Functions
+  const clean = () => {
+    setSearchedName('')
+    setNewName('')
+    setNewNumber('')
+  }
   const updateNewName = (event) => setNewName(event.target.value)
   const updateNewNumber = (event) => setNewNumber(event.target.value)
   const updateSearchedName = (event) => {
@@ -47,29 +66,58 @@ const App = () => {
     if (alreadyExists) {
       alert(`${newName} is already added to phonebook`)
     } else {
-      const id = Math.max(...persons.map(person => person.id));
+      const id = (Math.max(...persons.map(person => person.id)) + 1).toString();
       const newPerson = {name: newName, number: newNumber, id: id}
       const newPersons = [...persons, newPerson]
-      setPersons(newPersons)
-      setSearchedPersons(newPersons)
       personsService.create(newPerson)
+      .then(() => {
+        setPersons(newPersons)
+        setSearchedPersons(newPersons)
+      })
+      .catch(() => setNetworkError(true))
     }
-    setNewName('')
-    setNewNumber('')
-    setSearchedName('')
+    clean()
+  }
+  const deletePerson = (_person) => {
+    const confirm = window.confirm(`Delete ${_person.name}?`)
+    if (confirm) {
+      const updatedPersons = persons.filter(person => person.id !== _person.id)
+      personsService.remove(_person.id)
+      .then(() => {
+        setPersons(updatedPersons)
+        setSearchedPersons(updatedPersons)
+        clean()
+      })
+      .catch(() => setNetworkError(true))
+    }
   }
 
   // Render
   return (
-    <div>
-      <h2>Phonebook</h2>
-      <SearchFilter searchedName={searchedName} updateSearchedName={updateSearchedName}/>
-      <h3>Add a new</h3>
-      <PersonForm newName={newName} newNumber={newNumber} updateNewName={updateNewName} updateNewNumber={updateNewNumber} addNewPerson={addNewPerson}/>
-      <h3>Numbers</h3>
-      <Persons searchedPersons={searchedPersons}/>
-    </div>
-  )
+    <>
+      {
+        (
+          networkError ? 
+            (
+              <>
+                <h1>Network error</h1>
+                <p>There has been a network problem with http://localhost:3001/</p>
+              </>
+            ) : 
+            (
+              <div>
+                <h2>Phonebook</h2>
+                <SearchFilter searchedName={searchedName} updateSearchedName={updateSearchedName}/>
+                <h3>Add a new</h3>
+                <PersonForm newName={newName} newNumber={newNumber} updateNewName={updateNewName} updateNewNumber={updateNewNumber} addNewPerson={addNewPerson}/>
+                <h3>Numbers</h3>
+                <Persons searchedPersons={searchedPersons} deletePerson={deletePerson}/>
+              </div>
+            )
+        )
+      }
+    </>
+  ) 
 }
 
 export default App
