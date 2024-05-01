@@ -4,17 +4,8 @@ import { useEffect, useState } from 'react'
 import personsService from './services/persons.js'
 
 // Components
-const Notification = ({message}) => {
-  const stl = {
-    color: 'green',
-    background: 'lightgrey',
-    fontSize: 20,
-    borderStyle: 'solid',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10
-  }
-  return <p style={stl}>{message}</p>
+const Notification = ({message, style}) => {  
+  return <p style={style}>{message}</p>
 }
 const SearchFilter = ({searchedName, updateSearchedName}) => {
   return <p>filter shown with <input value={searchedName} onChange={updateSearchedName}/></p>
@@ -45,8 +36,8 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [searchedName, setSearchedName] = useState('')
   const [searchedPersons, setSearchedPersons] = useState([])
-  const [networkError, setNetworkError] = useState(false)
   const [notification, setNotification] = useState('')
+  const [notificationError, setNotificationError] = useState('')
 
   // Hook
   useEffect(() => {
@@ -56,7 +47,12 @@ const App = () => {
       setPersons(response.data)
       setSearchedPersons(response.data)
     })
-    .catch(() => setNetworkError(true))
+    .catch(() => {
+      setNotificationError('Error getting the information from the phone book')        
+        setTimeout(() => {
+          setNotificationError(null)
+        }, 2000);
+    })
   },[])
 
   // Functions
@@ -64,6 +60,7 @@ const App = () => {
     setSearchedName('')
     setNewName('')
     setNewNumber('')
+    setSearchedPersons(persons)
   }
   const updateNewName = (event) => setNewName(event.target.value)
   const updateNewNumber = (event) => setNewNumber(event.target.value)
@@ -94,7 +91,12 @@ const App = () => {
           setNotification(null)
         }, 2000);
       })
-      .catch(() => setNetworkError(true))
+      .catch(() => {
+        setNotificationError(`${newPerson.name} could not be added`)
+        setTimeout(() => {
+          setNotificationError(null)
+        }, 2000);
+      })
     }
     clean()
   }
@@ -104,54 +106,62 @@ const App = () => {
     .then(() => {
       const newPersons = [...persons.filter(person => person.name !== newPerson.name), newPerson]
       setPersons(newPersons)
-      setSearchedPersons(newPersons)
       setNotification(`${newPerson.name} number is updated to ${newPerson.number}`)        
       setTimeout(() => {
         setNotification(null)
       }, 2000);
-      clean()
+    })    
+    .catch(() => {
+      setNotificationError(`Information of ${newPerson.name} has already removed from server`)
+      setTimeout(() => {
+        setNotificationError(null)
+      }, 2000);
     })
-    .catch(() => setNetworkError(true))
+    clean()
   }
   const deletePerson = (_person) => {
     const confirm = window.confirm(`Delete ${_person.name}?`)
     if (confirm) {
       const updatedPersons = persons.filter(person => person.id !== _person.id)
+      console.log()
       personsService.remove(_person.id)
       .then(() => {
         setPersons(updatedPersons)
         setSearchedPersons(updatedPersons)
-        clean()
       })
-      .catch(() => setNetworkError(true))
+      .catch(() => {
+        setNotificationError(`${_person.name} could not be deleted`)
+        setTimeout(() => {
+          setNotificationError(null)
+        }, 2000);
+      })
     }
+    clean()
   }
 
   // Render
+  const notificationStyle = {
+    color: 'green',
+    background: 'lightgrey',
+    fontSize: 20,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10
+  }
+  const errorNotificationStyle = {...notificationStyle, color: 'red'}
   return (
     <>
-      {
-        (
-          networkError ? 
-            (
-              <>
-                <h1>Network error</h1>
-                <p>There has been a network problem with http://localhost:3001/</p>
-              </>
-            ) : 
-            (
-              <div>
-                <h2>Phonebook</h2>
-                {notification ? <Notification message={notification}/> : null}
-                <SearchFilter searchedName={searchedName} updateSearchedName={updateSearchedName}/>
-                <h3>Add a new</h3>
-                <PersonForm newName={newName} newNumber={newNumber} updateNewName={updateNewName} updateNewNumber={updateNewNumber} addNewPerson={addNewPerson}/>
-                <h3>Numbers</h3>
-                <Persons searchedPersons={searchedPersons} deletePerson={deletePerson}/>
-              </div>
-            )
-        )
-      }
+      <div>
+        <h2>Phonebook</h2>
+        {notificationError ? <Notification style={errorNotificationStyle} message={notificationError}/> : null }
+        {notification ? <Notification style={notificationStyle} message={notification}/> : null}
+        <SearchFilter searchedName={searchedName} updateSearchedName={updateSearchedName}/>
+        <h3>Add a new</h3>
+        <PersonForm newName={newName} newNumber={newNumber} updateNewName={updateNewName} updateNewNumber={updateNewNumber} addNewPerson={addNewPerson}/>
+        <h3>Numbers</h3>
+        <Persons searchedPersons={searchedPersons} deletePerson={deletePerson}/>
+      </div>
     </>
   ) 
 }
