@@ -4,6 +4,18 @@ import { useEffect, useState } from 'react'
 import personsService from './services/persons.js'
 
 // Components
+const Notification = ({message}) => {
+  const stl = {
+    color: 'green',
+    background: 'lightgrey',
+    fontSize: 20,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10
+  }
+  return <p style={stl}>{message}</p>
+}
 const SearchFilter = ({searchedName, updateSearchedName}) => {
   return <p>filter shown with <input value={searchedName} onChange={updateSearchedName}/></p>
 }
@@ -34,6 +46,7 @@ const App = () => {
   const [searchedName, setSearchedName] = useState('')
   const [searchedPersons, setSearchedPersons] = useState([])
   const [networkError, setNetworkError] = useState(false)
+  const [notification, setNotification] = useState('')
 
   // Hook
   useEffect(() => {
@@ -76,6 +89,10 @@ const App = () => {
       .then(() => {
         setPersons(newPersons)
         setSearchedPersons(newPersons)
+        setNotification(`${newPerson.name} number is added to phonebook`)        
+        setTimeout(() => {
+          setNotification(null)
+        }, 2000);
       })
       .catch(() => setNetworkError(true))
     }
@@ -88,6 +105,10 @@ const App = () => {
       const newPersons = [...persons.filter(person => person.name !== newPerson.name), newPerson]
       setPersons(newPersons)
       setSearchedPersons(newPersons)
+      setNotification(`${newPerson.name} number is updated to ${newPerson.number}`)        
+      setTimeout(() => {
+        setNotification(null)
+      }, 2000);
       clean()
     })
     .catch(() => setNetworkError(true))
@@ -121,6 +142,7 @@ const App = () => {
             (
               <div>
                 <h2>Phonebook</h2>
+                {notification ? <Notification message={notification}/> : null}
                 <SearchFilter searchedName={searchedName} updateSearchedName={updateSearchedName}/>
                 <h3>Add a new</h3>
                 <PersonForm newName={newName} newNumber={newNumber} updateNewName={updateNewName} updateNewNumber={updateNewNumber} addNewPerson={addNewPerson}/>
