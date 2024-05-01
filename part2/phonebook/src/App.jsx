@@ -19,7 +19,7 @@ const PersonForm = ({newName, newNumber, updateNewName, updateNewNumber, addNewP
 const Persons  = ({searchedPersons, deletePerson}) => {
   return (
     <>
-      {searchedPersons.map(person => <p key={person.name}>{person.name} {person.number}<button onClick={() => deletePerson(person)}>delete</button></p>)}
+      {searchedPersons.map(person => <p key={person.id}>{person.name} {person.number}<button onClick={() => deletePerson(person)}>delete</button></p>)}
     </>
   )
 }
@@ -62,9 +62,12 @@ const App = () => {
   }
   const addNewPerson = (event) => {
     event.preventDefault()
-    const alreadyExists = persons.some(person => person.name.toLowerCase() === newName.toLowerCase())
+    const alreadyExists = persons.find(person => person.name.toLowerCase() === newName.toLowerCase())
     if (alreadyExists) {
-      alert(`${newName} is already added to phonebook`)
+      const confirm = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)
+      if (confirm) {
+        updatePerson({...alreadyExists, number: newNumber})
+      }
     } else {
       const id = (Math.max(...persons.map(person => person.id)) + 1).toString();
       const newPerson = {name: newName, number: newNumber, id: id}
@@ -77,6 +80,17 @@ const App = () => {
       .catch(() => setNetworkError(true))
     }
     clean()
+  }
+  const updatePerson = (newPerson) => {
+    personsService
+    .update(newPerson)
+    .then(() => {
+      const newPersons = [...persons.filter(person => person.name !== newPerson.name), newPerson]
+      setPersons(newPersons)
+      setSearchedPersons(newPersons)
+      clean()
+    })
+    .catch(() => setNetworkError(true))
   }
   const deletePerson = (_person) => {
     const confirm = window.confirm(`Delete ${_person.name}?`)
