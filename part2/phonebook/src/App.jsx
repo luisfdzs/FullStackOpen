@@ -1,6 +1,7 @@
 // Imports
 import { useEffect, useState } from 'react'
 import personsService from './services/persons.js'
+import './App.css'
 
 // Components
 const Notification = ({message, isError}) => {
@@ -16,13 +17,13 @@ const Notification = ({message, isError}) => {
   return message ? <p style={style}>{message}</p> : null
 }
 const SearchFilter = ({searchedName, updateSearchedName}) => {
-  return <p>filter shown with <input value={searchedName} onChange={updateSearchedName}/></p>
+  return <p>Filter shown with: <input value={searchedName} onChange={updateSearchedName}/></p>
 }
 const PersonForm = ({newName, newNumber, updateNewName, updateNewNumber, addNewPerson}) => {
   return (
     <form>
-      <p>name: <input onChange={updateNewName} value={newName}/></p>
-      <p>number: <input onChange={updateNewNumber} value={newNumber}/></p>
+      <p>Name: <input onChange={updateNewName} value={newName}/></p>
+      <p>Number: <input onChange={updateNewNumber} value={newNumber}/></p>
       <button onClick={addNewPerson}>add</button>
     </form>
   )
@@ -141,15 +142,15 @@ const App = () => {
   // Render
   return (
     <>
-      <div>
-        <h2>Phonebook</h2>
+      <div className='all-content borde-chulo'>
+        <h2 className='title'>Phonebook</h2>
         {notification ? <Notification message={notification} isError={isError}/> : null}
         <SearchFilter searchedName={searchedName} updateSearchedName={updateSearchedName}/>
-        <h3>Add a new</h3>
+        <h3 className='subtitle'>Add a new</h3>
         <PersonForm newName={newName} newNumber={newNumber} updateNewName={updateNewName} updateNewNumber={updateNewNumber} addNewPerson={addNewPerson}/>
-        <h3>Numbers</h3>
+        <h3 className='subtitle'>Numbers</h3>
         {isLoading ? <p>Loading ...</p> : <Persons searchedPersons={searchedPersons} deletePerson={deletePerson}/>}
-      </div>
+      </div >
     </>
   ) 
 }

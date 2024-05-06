@@ -1,0 +1,27 @@
+.all-content {
+  width: fit-content;
+  margin: auto;
+  padding: 0px 50px;
+  margin-top: 50px;
+  background-color: #a3c7a6;
+}
+.title {
+  width: fit-content;
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.borde-chulo {
+  border: 2px solid;
+  border-image: linear-gradient(
+    to right,
+    #04d415,
+    #039610
+  ); /* Degradado de colores */
+  border-image-slice: 1; /* Para que el degradado cubra completamente el borde */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Sombra */
+}
+.subtitle,
+.title {
+  color: #087b12;
+}
