@@ -47,7 +47,8 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [notification, setNotification] = useState(null)
   const [isError, setIsError] = useState(false)
-  
+  const [refresh, setRefresh] = useState(false)
+
   // Hook
   useEffect(() => {
     personsService
@@ -62,7 +63,7 @@ const App = () => {
       sendNotification('Error getting the information from the phone book', true)
       setIsLoading(false)
     })
-  },[])
+  },[refresh])
   
   // Functions
   const sendNotification = (message, isError = false) => {
@@ -103,6 +104,7 @@ const App = () => {
         setPersons(newPersons)
         setSearchedPersons(newPersons)
         sendNotification(`${newPerson.name} number is added to phonebook`)
+        setRefresh(!refresh)
       })
       .catch(() => sendNotification(`${newPerson.name} could not be added`, true))
     }
