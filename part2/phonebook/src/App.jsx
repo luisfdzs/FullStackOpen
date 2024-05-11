@@ -1,8 +1,8 @@
+/* eslint-disable react/prop-types */
 // Imports
 import { useEffect, useState } from 'react'
 import personsService from './services/persons.js'
 import './App.css'
-
 // Components
 const Notification = ({message, isError}) => {
   const style = {
@@ -21,17 +21,54 @@ const SearchFilter = ({searchedName, updateSearchedName}) => {
 }
 const PersonForm = ({newName, newNumber, updateNewName, updateNewNumber, addNewPerson}) => {
   return (
-    <form>
-      <p>Name: <input onChange={updateNewName} value={newName}/></p>
-      <p>Number: <input onChange={updateNewNumber} value={newNumber}/></p>
-      <button onClick={addNewPerson}>add</button>
+    <form style={{display: 'flex'}}>
+      <div>
+        <p>Name: <input id='input-name' style={{marginLeft: 23}} onChange={updateNewName} value={newName}/></p>
+        <p>Number: <input style={{marginLeft: 5}} onChange={updateNewNumber} value={newNumber}/></p>
+      </div>
+      <button style={{ background: 'none', border: 'none' }} onClick={addNewPerson}>
+        <img src='images/add.png' style={{ width: 30, height: 30, margin: 'auto', paddingLeft: 34 }} alt="Add" />
+      </button>
     </form>
   )
 }
 const Persons  = ({searchedPersons, deletePerson}) => {
   return (
     <>
-      {searchedPersons.length ? searchedPersons.map(person => <p key={person.id}>{person.name} {person.number}<button onClick={() => deletePerson(person)}>delete</button></p>) : <p>No data avaiable</p>}
+      {searchedPersons.length 
+      ? searchedPersons.map(person => {
+        return (
+          <div key={person.id} style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            border: '0.1px solid',
+            marginBottom: 5
+            }}>
+            <div>
+              <div style={{
+                display: 'flex',
+                height: 30
+              }}>
+                <img style={{margin: 5}} src='images/name.png'/>
+                <p style={{alignContent: 'center', marginLeft: 5}}>Name: {person.name}</p>
+              </div>
+              <div style={{
+                display: 'flex',
+                height: 30
+              }}>
+                <img style={{margin: 5}} src='images/number.png'/>
+                <p style={{alignContent: 'center', marginLeft: 5}}>Number: {person.number}</p>
+              </div>
+            </div>
+            <img style={{
+              width: 33,
+              height: 33,
+              margin: 'auto 8px'
+            }} src='images/delete.png' onClick={() => deletePerson(person)}></img>
+          </div>
+        )
+      }) 
+      : <p>No data avaiable</p>}
     </>
   )
 }
@@ -72,13 +109,22 @@ const App = () => {
     setIsError(isError)
     setTimeout(() => {
       setNotification(null)
-    }, 2000);
+    }, 3000);
+  }
+  const sendNotificationError = (error) => {
+    const data = error.response.data
+    const a = data.indexOf('<pre>') + 5
+    const b = data.indexOf('</pre>')
+    const c = data.indexOf('<br>')
+    const errorMssg = data.substring(a, b > c && c !== -1 ? c : b)
+    sendNotification(errorMssg, true)
   }
   const clean = () => {
     setSearchedName('')
     setNewName('')
     setNewNumber('')
     setSearchedPersons(persons)
+    document.getElementById('input-name').focus()
   }
   const updateNewName = (event) => setNewName(event.target.value)
   const updateNewNumber = (event) => setNewNumber(event.target.value)
@@ -107,7 +153,7 @@ const App = () => {
         sendNotification(`${newPerson.name} number is added to phonebook`)
         setRefresh(!refresh)
       })
-      .catch(() => sendNotification(`${newPerson.name} could not be added`, true))
+      .catch((error) => sendNotificationError(error))
     }
     clean()
   }
@@ -120,7 +166,7 @@ const App = () => {
       setSearchedPersons(newPersons)
       sendNotification(`${newPerson.name} number is updated to ${newPerson.number}`)
     })    
-    .catch(() => sendNotification(`Information of ${newPerson.name} has already removed from server`, true))
+    .catch((error) => sendNotificationError(error))
     clean()
   }
   const deletePerson = (_person) => {
@@ -134,7 +180,7 @@ const App = () => {
         setSearchedPersons(updatedPersons)
         sendNotification(`${_person.name} deleted from phonebook`)
       })
-      .catch(() => sendNotification(`${_person.name} could not be deleted`, true))
+      .catch((error) => sendNotificationError(error))
     }
     clean()
   }
@@ -150,6 +196,7 @@ const App = () => {
         <PersonForm newName={newName} newNumber={newNumber} updateNewName={updateNewName} updateNewNumber={updateNewNumber} addNewPerson={addNewPerson}/>
         <h3 className='subtitle'>Numbers</h3>
         {isLoading ? <p>Loading ...</p> : <Persons searchedPersons={searchedPersons} deletePerson={deletePerson}/>}
+        <br />
       </div >
     </>
   ) 
